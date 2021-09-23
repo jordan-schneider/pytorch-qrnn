@@ -94,9 +94,12 @@ class QRNNLayer(nn.Module):
         F = F.contiguous()
         # The O gate doesn't need to be contiguous as it isn't used in the CUDA kernel
 
+        if self.use_cuda:
+            Z, F = Z.to(device=torch.device("cuda:0")), F.to(device=torch.device("cuda:0"))
+
         # Forget Mult
         # For testing QRNN without ForgetMult CUDA kernel, C = Z * F may be useful
-        C = ForgetMult()(F, Z, hidden, use_cuda=self.use_cuda)
+        C = ForgetMult()(F, Z, hidden, use_cuda=self.use_cuda).cpu()
 
         # Apply (potentially optional) output gate
         if self.output_gate:
